@@ -13,19 +13,20 @@ datatype stm = CompoundStm of stm * stm
              | OpExp of exp * binop * exp
              | EseqExp of stm * exp
 
-val prog = 
- CompoundStm(AssignStm("a",OpExp(NumExp 5, Plus, NumExp 3)),
-  CompoundStm(AssignStm("b",
-      EseqExp(PrintStm[IdExp"a",OpExp(IdExp"a", Minus,NumExp 1)],
-           OpExp(NumExp 10, Times, IdExp"a"))),
-   PrintStm[IdExp "b"]))
+val prog =
+ CompoundStm (AssignStm("a", OpExp(NumExp 5, Plus, NumExp 3)),
+  CompoundStm (AssignStm("b",
+      EseqExp (PrintStm [IdExp "a", OpExp(IdExp "a", Minus, NumExp 1)],
+           OpExp (NumExp 10, Times, IdExp "a"))),
+   PrintStm [IdExp "b"]))
 
 fun lookup (env : env, id : id) : int =
   (fn (k, v) => v) (valOf (List.find (fn (k, v) => k = id) env))
 
 fun maxargs (CompoundStm (a, b)) = Int.max (maxargs a, maxargs b)
-  | maxargs (AssignStm (a, b)) = maxargsExp b 
-  | maxargs (PrintStm a) = List.length a
+  | maxargs (AssignStm (a, b)) = maxargsExp b
+  | maxargs (PrintStm []) = 0
+  | maxargs (PrintStm (x::xs)) = Int.max (List.length (x::xs), Int.max (maxargsExp x, maxargs (PrintStm xs)))
 and maxargsExp (IdExp a) = 0
   | maxargsExp (NumExp a) = 0
   | maxargsExp (OpExp (a, b, c)) = Int.max (maxargsExp a, maxargsExp c)
@@ -56,7 +57,7 @@ and interpExp (IdExp a, env) = (lookup (env, a), env)
         | Times => (left * right, env'')
         | Div   => (left div right, env'')
     end
-  | interpExp (EseqExp (a, b), env) = 
+  | interpExp (EseqExp (a, b), env) =
     let val env' = interpStm (a, env)
     in interpExp (b, env')
     end
