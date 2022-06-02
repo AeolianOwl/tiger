@@ -43,7 +43,7 @@ fun interpStm (CompoundStm (a, b), env) =
   | interpStm (PrintStm [], env) = env
   | interpStm (PrintStm (x::xs), env) =
       let val (left, env') = interpExp (x, env)
-                        val _ = print ((Int.toString left) ^ " ")
+          val _ = print ((Int.toString left) ^ " ")
       in interpStm (PrintStm xs, env')
       end
 and interpExp (IdExp a, env) = (lookup (env, a), env)
